@@ -30,6 +30,7 @@ import com.burhanrashid52.photoeditor.filters.FilterListener;
 import com.burhanrashid52.photoeditor.filters.FilterViewAdapter;
 import com.burhanrashid52.photoeditor.tools.EditingToolsAdapter;
 import com.burhanrashid52.photoeditor.tools.ToolType;
+import com.thuytrinh.android.collageviews.MultiTouchListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
     private ConstraintSet mConstraintSet = new ConstraintSet();
     private boolean mIsFilterVisible;
 
+    private FramesBSFragment framesBSFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,9 +94,13 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
         mRvFilters.setLayoutManager(llmFilters);
         mRvFilters.setAdapter(mFilterViewAdapter);
 
+        framesBSFragment = new FramesBSFragment();
+
+        MultiTouchListener multiTouchListener = new MultiTouchListener();
 
         //Typeface mTextRobotoTf = ResourcesCompat.getFont(this, R.font.roboto_medium);
         //Typeface mEmojiTypeFace = Typeface.createFromAsset(getAssets(), "emojione-android.ttf");
+        findViewById(R.id.photoEditorView).setOnTouchListener(multiTouchListener);
 
         mPhotoEditor = new PhotoEditor.Builder(this, mPhotoEditorView)
                 .setPinchTextScalable(true) // set flag to make text scalable when pinch
@@ -103,6 +109,7 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
                 .build(); // build photo editor sdk
 
         mPhotoEditor.setOnPhotoEditorListener(this);
+        framesBSFragment = new FramesBSFragment();
 
         //Set Image Dynamically
         // mPhotoEditorView.getSource().setImageResource(R.drawable.color_palette);
@@ -371,7 +378,7 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
                 showFilter(true);
                 break;
             case EMOJI:
-                mEmojiBSFragment.show(getSupportFragmentManager(), mEmojiBSFragment.getTag());
+                framesBSFragment.show(getSupportFragmentManager(), framesBSFragment.getTag());
                 break;
             case STICKER:
                 mStickerBSFragment.show(getSupportFragmentManager(), mStickerBSFragment.getTag());

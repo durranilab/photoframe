@@ -5,8 +5,65 @@
     android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
+    android:background="#010b13"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/mainFrame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rvConstraintTools">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ja.burhanrashid52.photoeditor.PhotoEditorView
+                android:id="@+id/photoEditorView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:photo_src="@drawable/got_s" >
+
+
+            </ja.burhanrashid52.photoeditor.PhotoEditorView>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+
+            <ja.burhanrashid52.photoeditor.PhotoEditorView
+                android:id="@+id/serverimage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:photo_src="@drawable/f1"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <androidx.constraintlayout.widget.Guideline
@@ -16,55 +73,53 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_end="?attr/actionBarSize" />
 
-    <ja.burhanrashid52.photoeditor.PhotoEditorView
-        android:id="@+id/photoEditorView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/rvConstraintTools"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:photo_src="@drawable/got_s" />
-
     <ImageView
         android:id="@+id/imgUndo"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:background="#99000000"
+        android:background="@color/black"
         android:padding="8dp"
         android:src="@drawable/ic_undo"
         app:layout_constraintBottom_toTopOf="@+id/rvConstraintTools"
-        app:layout_constraintEnd_toStartOf="@+id/imgRedo" />
+        app:layout_constraintEnd_toStartOf="@+id/imgRedo"
+        android:contentDescription="todo"
+        tools:ignore="HardcodedText" />
 
     <ImageView
         android:id="@+id/imgRedo"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:background="#99000000"
+        android:background="@color/black"
         android:padding="8dp"
         android:src="@drawable/ic_redo"
         app:layout_constraintBottom_toTopOf="@+id/rvConstraintTools"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+         />
 
     <ImageView
         android:id="@+id/imgGallery"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:background="#99000000"
+        android:background="@color/black"
         android:padding="8dp"
         android:src="@drawable/ic_gallery"
         app:layout_constraintBottom_toTopOf="@+id/rvConstraintTools"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+         />
+
+
 
     <ImageView
         android:id="@+id/imgCamera"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:background="#99000000"
+        android:background="@color/black"
         android:padding="8dp"
         android:src="@drawable/ic_camera"
         app:layout_constraintBottom_toTopOf="@+id/rvConstraintTools"
-        app:layout_constraintStart_toEndOf="@id/imgGallery" />
+        app:layout_constraintStart_toEndOf="@id/imgGallery"
+        />
+
 
     <ImageView
         android:id="@+id/imgClose"
@@ -82,7 +137,7 @@
         android:id="@+id/rvConstraintTools"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/tool_bg"
+        android:background="@color/black"
         android:orientation="horizontal"
         android:paddingBottom="4dp"
         android:paddingTop="4dp"
@@ -96,7 +151,7 @@
         android:id="@+id/rvFilterView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/tool_bg"
+        android:background="@color/black"
         android:orientation="horizontal"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="@+id/rvConstraintTools"
@@ -108,8 +163,8 @@
         android:id="@+id/txtCurrentTool"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="0dp"
         android:singleLine="true"
         android:text="@string/app_name"
         android:textColor="@android:color/white"
@@ -126,6 +181,9 @@
         android:src="@drawable/ic_save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/guideline" />
+        app:layout_constraintTop_toBottomOf="@+id/guideline"
+        tools:ignore="ContentDescription" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
