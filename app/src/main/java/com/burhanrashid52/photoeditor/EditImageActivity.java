@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnticipateOvershootInterpolator;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,15 +26,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.ChangeBounds;
 import androidx.transition.TransitionManager;
 
+import com.bumptech.glide.Glide;
 import com.burhanrashid52.photoeditor.base.BaseActivity;
 import com.burhanrashid52.photoeditor.filters.FilterListener;
 import com.burhanrashid52.photoeditor.filters.FilterViewAdapter;
 import com.burhanrashid52.photoeditor.tools.EditingToolsAdapter;
 import com.burhanrashid52.photoeditor.tools.ToolType;
+import com.burhanrashid52.photoeditor.utils.BitmapUtils;
 import com.thuytrinh.android.collageviews.MultiTouchListener;
+import com.zomato.photofilters.imageprocessors.Filter;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import ja.burhanrashid52.photoeditor.OnPhotoEditorListener;
 import ja.burhanrashid52.photoeditor.PhotoEditor;
@@ -47,14 +54,14 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
         View.OnClickListener,
         PropertiesBSFragment.Properties,
         EmojiBSFragment.EmojiListener,
-        StickerBSFragment.StickerListener, EditingToolsAdapter.OnItemSelected, FilterListener {
+        StickerBSFragment.StickerListener, EditingToolsAdapter.OnItemSelected, FilterListener, FiltersListFragment.FiltersListFragmentListener {
 
     private static final String TAG = EditImageActivity.class.getSimpleName();
     public static final String EXTRA_IMAGE_PATHS = "extra_image_paths";
     private static final int CAMERA_REQUEST = 52;
-    private static final int PICK_REQUEST = 53;
+    private static final int PICK_REQUEST = 100;
     PhotoEditor mPhotoEditor;
-    private PhotoEditorView mPhotoEditorView;
+    ImageView MainImage;
     private PropertiesBSFragment mPropertiesBSFragment;
     private EmojiBSFragment mEmojiBSFragment;
     private StickerBSFragment mStickerBSFragment;
@@ -69,6 +76,26 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
 
     private FramesBSFragment framesBSFragment;
 
+    private FrameLayout MainFrame;
+
+    public static String IMAGE = "got_s.jpg";
+
+    FiltersListFragment filtersListFragment;
+
+    Bitmap originalImage;
+    // to backup image with filter applied
+    Bitmap filteredImage;
+
+    // the final image after applying
+    // brightness, saturation, contrast
+    Bitmap finalImage;
+
+    private Bitmap bitmap;
+    private String uri;
+
+    static {
+        System.loadLibrary("NativeImageProcessor");
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +103,28 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
         setContentView(R.layout.activity_edit_image);
 
         initViews();
+
+       loadImage();
+
+        MainImage = findViewById(R.id.photoEditorView);
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            bitmap = bundle.getParcelable("BitmapImage");
+            uri = bundle.getString("ImageUri");
+
+            if (bitmap != null)
+                MainImage.setImageBitmap(bitmap);
+            else
+                Glide.with(this).load(uri).into(MainImage);
+        }
+
+
+
+
+
+
+
 
         mWonderFont = Typeface.createFromAsset(getAssets(), "beyond_wonderland.ttf");
 
@@ -96,19 +145,22 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
 
         framesBSFragment = new FramesBSFragment();
 
+        filtersListFragment = new FiltersListFragment();
+
+        filtersListFragment.setListener(this);
+
+
+
+
+
+
         MultiTouchListener multiTouchListener = new MultiTouchListener();
 
         //Typeface mTextRobotoTf = ResourcesCompat.getFont(this, R.font.roboto_medium);
         //Typeface mEmojiTypeFace = Typeface.createFromAsset(getAssets(), "emojione-android.ttf");
         findViewById(R.id.photoEditorView).setOnTouchListener(multiTouchListener);
 
-        mPhotoEditor = new PhotoEditor.Builder(this, mPhotoEditorView)
-                .setPinchTextScalable(true) // set flag to make text scalable when pinch
-                //.setDefaultTextTypeface(mTextRobotoTf)
-                //.setDefaultEmojiTypeface(mEmojiTypeFace)
-                .build(); // build photo editor sdk
 
-        mPhotoEditor.setOnPhotoEditorListener(this);
         framesBSFragment = new FramesBSFragment();
 
         //Set Image Dynamically
@@ -123,7 +175,6 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
         ImageView imgSave;
         ImageView imgClose;
 
-        mPhotoEditorView = findViewById(R.id.photoEditorView);
         mTxtCurrentTool = findViewById(R.id.txtCurrentTool);
         mRvTools = findViewById(R.id.rvConstraintTools);
         mRvFilters = findViewById(R.id.rvFilterView);
@@ -146,6 +197,7 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
 
         imgClose = findViewById(R.id.imgClose);
         imgClose.setOnClickListener(this);
+
 
     }
 
@@ -219,62 +271,79 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
         }
     }
 
+    private void loadImage() {
+
+        MainImage = findViewById(R.id.photoEditorView);
+
+        originalImage = BitmapUtils.getBitmapFromAssets(this, IMAGE, 300, 300);
+        filteredImage = originalImage.copy(Bitmap.Config.ARGB_8888, true);
+        finalImage = originalImage.copy(Bitmap.Config.ARGB_8888, true);
+        MainImage.setImageBitmap(originalImage);
+    }
+
+
     @SuppressLint("MissingPermission")
     private void saveImage() {
         if (requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            showLoading("Saving...");
-            File file = new File(Environment.getExternalStorageDirectory()
-                    + File.separator + ""
-                    + System.currentTimeMillis() + ".png");
-            try {
-                file.createNewFile();
 
-                SaveSettings saveSettings = new SaveSettings.Builder()
-                        .setClearViewsEnabled(true)
-                        .setTransparencyEnabled(true)
-                        .build();
 
-                mPhotoEditor.saveAsFile(file.getAbsolutePath(), saveSettings, new PhotoEditor.OnSaveListener() {
-                    @Override
-                    public void onSuccess(@NonNull String imagePath) {
-                        hideLoading();
-                        showSnackbar("Image Saved Successfully");
-                        mPhotoEditorView.getSource().setImageURI(Uri.fromFile(new File(imagePath)));
-                    }
+            MainFrame = findViewById(R.id.mainFrame);
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String imageFileName = timeStamp + ".png";
+            storeThumbnail(MainFrame);
 
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        hideLoading();
-                        showSnackbar("Failed to save Image");
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-                hideLoading();
-                showSnackbar(e.getMessage());
-            }
         }
     }
+    private void storeThumbnail(FrameLayout frameLayout) {
 
+
+        frameLayout.setDrawingCacheEnabled(true);
+        frameLayout.buildDrawingCache();
+        Bitmap thumb = frameLayout.getDrawingCache();
+
+
+        File file = new File(Environment.getExternalStorageDirectory()
+                + File.separator + ""
+                + System.currentTimeMillis() + ".png");
+
+
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            thumb.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+            fileOutputStream.close();
+        } catch (IOException ex) {
+        }
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK && requestCode == PICK_REQUEST) {
             switch (requestCode) {
                 case CAMERA_REQUEST:
                     mPhotoEditor.clearAllViews();
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
-                    mPhotoEditorView.getSource().setImageBitmap(photo);
+                    // mPhotoEditorView.getSource().setImageBitmap(photo);
                     break;
+
                 case PICK_REQUEST:
-                    try {
-                        mPhotoEditor.clearAllViews();
-                        Uri uri = data.getData();
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                        mPhotoEditorView.getSource().setImageBitmap(bitmap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
+                    Bitmap bitmap = BitmapUtils.getBitmapFromGallery(this, data.getData(), 800, 800);
+
+                    // clear bitmap memory
+                    originalImage.recycle();
+                    finalImage.recycle();
+                    finalImage.recycle();
+
+                    originalImage = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    filteredImage = originalImage.copy(Bitmap.Config.ARGB_8888, true);
+                    finalImage = originalImage.copy(Bitmap.Config.ARGB_8888, true);
+                    MainImage.setImageBitmap(originalImage);
+                    bitmap.recycle();
+
+                    // render selected image thumbnails
+                    //filtersListFragment.prepareThumbnail(originalImage);
+
+
                     break;
             }
         }
@@ -381,7 +450,7 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
                 framesBSFragment.show(getSupportFragmentManager(), framesBSFragment.getTag());
                 break;
             case STICKER:
-                mStickerBSFragment.show(getSupportFragmentManager(), mStickerBSFragment.getTag());
+                filtersListFragment.show(getSupportFragmentManager(), filtersListFragment.getTag());
                 break;
         }
     }
@@ -421,5 +490,19 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public void onFilterSelected(Filter filter) {
+
+        // applying the selected filter
+        filteredImage = originalImage.copy(Bitmap.Config.ARGB_8888, true);
+        // preview filtered image
+
+        MainImage.setImageBitmap(filter.processFilter(filteredImage));
+
+        finalImage = filteredImage.copy(Bitmap.Config.ARGB_8888, true);
+
+
     }
 }
