@@ -98,6 +98,7 @@ public class FiltersListFragment extends BottomSheetDialogFragment implements Th
         recyclerView.addItemDecoration(new SpacesItemDecoration(space));
         recyclerView.setAdapter(mAdapter);
 
+
         prepareThumbnail(null);
 
     }
@@ -115,6 +116,7 @@ public class FiltersListFragment extends BottomSheetDialogFragment implements Th
 
                 if (bitmap == null) {
                     thumbImage = BitmapUtils.getBitmapFromAssets(getActivity(),EditImageActivity.IMAGE ,100,100);
+
                 } else {
                     thumbImage = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
                 }

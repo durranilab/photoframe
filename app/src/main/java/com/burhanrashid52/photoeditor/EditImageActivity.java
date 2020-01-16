@@ -113,17 +113,20 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
             bitmap = bundle.getParcelable("BitmapImage");
             uri = bundle.getString("ImageUri");
 
-            if (bitmap != null)
+            if (bitmap != null){
                 MainImage.setImageBitmap(bitmap);
-            else
+                 originalImage = bitmap;
+            }
+            else{
                 Glide.with(this).load(uri).into(MainImage);
+            try {
+                originalImage = MediaStore.Images.Media.getBitmap(this.getContentResolver() , Uri.parse(uri));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            }
+
         }
-
-
-
-
-
-
 
 
         mWonderFont = Typeface.createFromAsset(getAssets(), "beyond_wonderland.ttf");
@@ -451,6 +454,9 @@ public class EditImageActivity extends BaseActivity implements OnPhotoEditorList
                 break;
             case STICKER:
                 filtersListFragment.show(getSupportFragmentManager(), filtersListFragment.getTag());
+             try {
+                 filtersListFragment.prepareThumbnail(originalImage);
+             }catch (Exception ex){}
                 break;
         }
     }
